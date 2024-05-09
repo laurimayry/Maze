@@ -11,6 +11,7 @@ var ctx = canvas.getContext('2d');
 var rows = 10;
 var cols = 10;
 var cellSize = canvas.width / cols;
+var stack = [];
 //Määritä tämän hetkinen solu
 var Cell = /** @class */ (function () {
     function Cell(i, j) {
@@ -24,6 +25,7 @@ var Cell = /** @class */ (function () {
         var y = this.i * cellSize;
         ctx.fillStyle = color;
         ctx.fillRect(x, y, cellSize, cellSize);
+        //Mikäli solulla on seinät, piirrä ne
         ctx.strokeStyle = 'black'; // Aseta seinän väri
         if (this.walls[0].length > 0) { // Tarkista yläseinä
             ctx.beginPath();
@@ -49,7 +51,6 @@ var Cell = /** @class */ (function () {
             ctx.lineTo(x, y);
             ctx.stroke();
         }
-        //ctx.strokeRect(x, y, cellSize, cellSize);
     };
     //Katso naapurisolut, ja valitse satunnaisesti joku olemassa olevista naapureista
     Cell.prototype.checkNeighbors = function () {
@@ -106,14 +107,29 @@ for (var i = 0; i < rows; i++) {
 //Määritä aloituspiste ja merkkaa se vierailtuksi
 function depthFirstSearch(current, delay) {
     setTimeout(function () {
+        //Merkitse nykyinen solu vierailtuksi
         current.visited = true;
+        //console.log(stack)
         drawGrid();
         //Valitsee satunnaisen naapurin
         var next = current.checkNeighbors();
-        //Jos naapuri löytyy, tee siitä current, JA poista seinä tästä välistä
+        //Jos unvisited naapuri löytyy, tee siitä current, JA poista seinä tästä välistä
         if (next) {
             removeWalls(current, next);
             depthFirstSearch(next, delay);
+            //Lisää current solu 'Stack' listaan
+            stack.push(current);
+        }
+        //Jos unvisited naapuria ei löydy, "nosta" viimeksi lisätty solu 'stack' pakasta ja tee siitä current
+        //Toista, kunnes unvisited naapuri löytyy
+        else {
+            var lastVisited = stack.pop();
+            console.log(lastVisited);
+            if (lastVisited) {
+                current = lastVisited;
+                current.draw(ctx, cellSize, 'red');
+                depthFirstSearch(current, delay);
+            }
         }
     }, delay);
 }
@@ -144,7 +160,7 @@ function removeWalls(a, b) {
     }
 }
 var current = grid[0][0];
-depthFirstSearch(current, 500);
+depthFirstSearch(current, 300);
 // Piirrä ruudukko käyttäen Cell-luokkaa
 function drawGrid() {
     for (var i = 0; i < rows; i++) {

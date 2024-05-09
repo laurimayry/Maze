@@ -16,6 +16,8 @@ const rows: number = 10;
 const cols: number = 10;
 const cellSize: number = canvas.width / cols;
 
+let stack:Cell[] = [];
+
 //Määritä tämän hetkinen solu
 
 class Cell {
@@ -130,14 +132,31 @@ for (let i = 0; i < rows; i++) {
 function depthFirstSearch(current: Cell, delay: number){
 
     setTimeout(() => {
+        //Merkitse nykyinen solu vierailtuksi
         current.visited = true;
+        //console.log(stack)
         drawGrid();
         //Valitsee satunnaisen naapurin
         const next = current.checkNeighbors();
-        //Jos naapuri löytyy, tee siitä current, JA poista seinä tästä välistä
+        //Jos unvisited naapuri löytyy, tee siitä current, JA poista seinä tästä välistä
         if (next) {
             removeWalls(current, next);
             depthFirstSearch(next, delay);
+        //Lisää current solu 'Stack' listaan
+            stack.push(current);
+        }
+        //Jos unvisited naapuria ei löydy, "nosta" viimeksi lisätty solu 'stack' pakasta ja tee siitä current
+        //Toista, kunnes unvisited naapuri löytyy
+        else{
+            let lastVisited = stack.pop();
+            console.log(lastVisited)
+            if (lastVisited) {
+                current = lastVisited;
+
+                //jos halutaan seurata stack.pop() etenemistä
+                //current.draw(ctx, cellSize, 'red');
+                depthFirstSearch(current, delay);
+            }
         }
     }, delay);
 }
@@ -175,7 +194,7 @@ function removeWalls(a:Cell, b:Cell){
 }
 
 let current: Cell = grid[0][0];
-depthFirstSearch(current, 500);
+depthFirstSearch(current, 300);
 
 
 // Piirrä ruudukko käyttäen Cell-luokkaa
